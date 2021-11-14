@@ -6,7 +6,7 @@
 #    By: majosue <majosue@student.21-school.ru>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/11/13 10:14:46 by majosue           #+#    #+#              #
-#    Updated: 2021/11/14 10:34:13 by majosue          ###   ########.fr        #
+#    Updated: 2021/11/14 20:15:09 by majosue          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ HEADERS_DIRECTORY = ./includes/ ./libft/includes
 SOURCES_DIRECTORY = ./sources/
 OBJECTS_DIRECTORY = ./objects/
 INCLUDES = $(addprefix -I , $(HEADERS_DIRECTORY))
-SOURCES = server.c
+SOURCES = server.c utils.c
 SOURCES2 = client.c
 OBJECTS = $(SOURCES:.c=.o)
 OBJECTS := $(addprefix $(OBJECTS_DIRECTORY), $(OBJECTS))
