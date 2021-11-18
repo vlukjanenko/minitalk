@@ -5,100 +5,69 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: majosue <majosue@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/11/09 17:30:21 by majosue           #+#    #+#             */
-/*   Updated: 2021/11/14 19:35:32 by majosue          ###   ########.fr       */
+/*   Created: 2021/11/18 14:00:40 by majosue           #+#    #+#             */
+/*   Updated: 2021/11/18 14:39:43 by majosue          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "server.h"
 
-struct s_messages	g_message;
-
-static void	reset_char(void)
+int	build_message(int bit, int pid)
 {
-	g_message.pos = 0;
-	g_message.bit = 0;
-	g_message.c = 0;
+	static int				current_pid;
+	static struct s_message	message;
+	static struct s_char	current_char;
+
+	current_pid = set_pid(current_pid, pid, &current_char, &message);
+	current_char.c = current_char.c | bit << current_char.bits;
+	if (current_char.bits == 7 && current_char.c)
+	{
+		add_char(&message, current_char.c);
+		reset_char(&current_char);
+	}
+	else if (current_char.bits == 7 && !current_char.c)
+	{
+		add_char(&message, '\n');
+		write(1, message.str, message.i);
+		reset_char(&current_char);
+		reset_message(&message);
+		current_pid = 0;
+		return (DONE);
+	}
+	else
+		current_char.bits++;
+	return (NEXT);
 }
 
-static void	enlarge_str(void)
+void	receive(int sig, siginfo_t *siginfo, void *ucontext)
 {
-	char	*new_str;
-	size_t	i;
+	int	confirm_signal;
+	int	error;
 
-	i = 0;
-	g_message.size += STR_LEN;
-	new_str = (char *)ft_memalloc(sizeof(char) * g_message.size);
-	if (!new_str)
+	(void)ucontext;
+	confirm_signal = build_message(1 + sig - ONE, siginfo->si_pid);
+	error = kill(siginfo->si_pid, confirm_signal);
+	if (error == -1)
 	{
-		ft_dprintf(2, "Out of memory\n");
-		exit (1);
-	}
-	ft_strncpy(new_str, g_message.str, g_message.i);
-	ft_strdel(&g_message.str);
-	g_message.str = new_str;
-}
-
-void	bit_up(int signum, siginfo_t *siginfo, void *code)
-{
-	(void)signum;
-	(void)siginfo;
-	(void)code;
-	g_message.bit = 1;
-}
-
-void	bit_shift(int signum, siginfo_t *siginfo, void *code)
-{
-	(void)signum;
-	(void)siginfo;
-	(void)code;
-	if (g_message.bit)
-	{
-		g_message.c = g_message.c | (1 << g_message.pos);
-		g_message.bit = 0;
-	}
-	g_message.pos++;
-	if (g_message.pos == 8 && g_message.c)
-	{
-		g_message.str[g_message.i++] = g_message.c;
-		if (g_message.i == g_message.size - 1)
-			enlarge_str();
-		reset_char();
-	}
-	else if (g_message.pos == 8 && !g_message.c)
-	{
-		g_message.str[g_message.i] = '\n';
-		write(1, g_message.str, g_message.i + 1);
-		reset_char();
-		g_message.i = 0;
-		ft_kill(siginfo->si_pid, SIGUSR2);
+		write(2, "Error: connection to client lost\n", 33);
 	}
 }
 
 int	main(void)
 {
-	struct sigaction	usr1;
-	struct sigaction	usr2;
+	struct sigaction	act;
+	struct sigaction	act2;
 
-	usr1.sa_sigaction = bit_up;
-	usr1.sa_flags = SA_SIGINFO;
-	usr2.sa_sigaction = bit_shift;
-	usr2.sa_flags = SA_SIGINFO;
-	sigemptyset(&usr1.sa_mask);
-	sigaddset(&usr1.sa_mask, SIGUSR2);
-	sigemptyset(&usr2.sa_mask);
-	sigaddset(&usr2.sa_mask, SIGUSR1);
-	sigaction(SIGUSR1, &usr1, NULL);
-	sigaction(SIGUSR2, &usr2, NULL);
-	ft_printf("pid: %d\n", getpid());
-	g_message.size = STR_LEN;
-	g_message.str = (char *)ft_memalloc(sizeof(char) * STR_LEN);
-	if (!g_message.str)
-	{
-		ft_dprintf(2, "Out of memory");
-		return (1);
-	}
+	act.sa_flags = SA_SIGINFO | SA_NODEFER;
+	act2.sa_flags = SA_SIGINFO | SA_NODEFER;
+	sigemptyset(&act.sa_mask);
+	sigemptyset(&act2.sa_mask);
+	act.sa_sigaction = receive;
+	act2.sa_sigaction = receive;
+	sigaction(SIGUSR1, &act, NULL);
+	sigaction(SIGUSR2, &act2, NULL);
+	ft_printf("%d\n", getpid());
 	while (1)
-		pause();
-	return (0);
+	{
+	}
 }

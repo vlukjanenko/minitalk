@@ -6,7 +6,7 @@
 #    By: majosue <majosue@student.21-school.ru>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/11/13 10:14:46 by majosue           #+#    #+#              #
-#    Updated: 2021/11/14 20:15:09 by majosue          ###   ########.fr        #
+#    Updated: 2021/11/18 14:48:37 by majosue          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,13 +14,15 @@ NAME = server
 NAME2 = client
 COMPILERC = gcc
 LIBS = libft/libft.a libftprintf/libftprintf.a
+LIBS2 = libft/libft.a
 FLAGS = -Wall -Wextra -Werror
 HEADERS = ./includes/server.h ./libft/includes/libft.h ./libftprintf/includes/ft_printf.h
+HEADERS2 = ./includes/client.h ./libft/includes/libft.h
 HEADERS_DIRECTORY = ./includes/ ./libft/includes
 SOURCES_DIRECTORY = ./sources/
 OBJECTS_DIRECTORY = ./objects/
 INCLUDES = $(addprefix -I , $(HEADERS_DIRECTORY))
-SOURCES = server.c utils.c
+SOURCES = server.c server_utils.c
 SOURCES2 = client.c
 OBJECTS = $(SOURCES:.c=.o)
 OBJECTS := $(addprefix $(OBJECTS_DIRECTORY), $(OBJECTS))
@@ -48,7 +50,7 @@ $(NAME2): $(OBJECTS_DIRECTORY) $(OBJECTS2)
 $(OBJECTS): $(OBJECTS_DIRECTORY)%.o : $(SOURCES_DIRECTORY)%.c $(HEADERS) $(LIBS)
 	$(COMPILERC) $(FLAGS) $(INCLUDES) -o $@ -c $<
 
-$(OBJECTS2): $(OBJECTS_DIRECTORY)%.o : $(SOURCES_DIRECTORY)%.c $(HEADERS) $(LIBS)
+$(OBJECTS2): $(OBJECTS_DIRECTORY)%.o : $(SOURCES_DIRECTORY)%.c $(HEADERS2) $(LIBS2)
 	$(COMPILERC) $(FLAGS) $(INCLUDES) -o $@ -c $<
 
 $(OBJECTS_DIRECTORY):

@@ -6,7 +6,7 @@
 /*   By: majosue <majosue@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/09 17:29:38 by majosue           #+#    #+#             */
-/*   Updated: 2021/11/14 20:19:09 by majosue          ###   ########.fr       */
+/*   Updated: 2021/11/18 14:31:06 by majosue          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,18 +15,31 @@
 # include "libft.h"
 # include <signal.h>
 
-# define STR_LEN 512
+#define ZERO		SIGUSR1
+#define ONE			SIGUSR2
+#define NEXT		SIGUSR1
+#define DONE		SIGUSR2
+#define MESSAGE_LEN	2048
 
-struct s_messages
+struct s_message
 {
 	char	*str;
 	size_t	i;
 	size_t	size;
-	int		bit;
-	int		pos;
-	char	c;
 };
 
-void	ft_kill(int pid, int sig);
+struct s_char
+{
+	char	c;
+	uint8_t bits;
+};
+
+void	reset_char(struct s_char* current_char);
+void	reset_message(struct s_message *message);
+void	enlarge_message(struct s_message *message);
+void	add_char(struct s_message *message, char c);
+int		set_pid(int current_pid, int pid, struct s_char *current_char, \
+											struct s_message *message);
+
 
 #endif

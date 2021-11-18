@@ -5,74 +5,75 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: majosue <majosue@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/11/11 08:37:14 by majosue           #+#    #+#             */
-/*   Updated: 2021/11/14 20:16:59 by majosue          ###   ########.fr       */
+/*   Created: 2021/11/18 14:14:05 by majosue           #+#    #+#             */
+/*   Updated: 2021/11/18 14:38:25 by majosue          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "server.h"
+#include "client.h"
 
-static void	ft_kill2(int pid, int sig)
+struct s_message	g_message;
+
+int	get_next_signal(void)
 {
-	kill(pid, sig);
-	usleep(10);
+	static int	bits;
+	int			sig;
+
+	if (!*(g_message.str))
+		return (ZERO);
+	sig = ZERO + ((*(g_message.str) >> bits) & 1);
+	if (bits == 7)
+	{
+		bits = 0;
+		g_message.str++;
+	}
+	else
+		bits++;
+	return (sig);
 }
 
-static void	send_message(int pid, char *message)
+void	send(int sig, siginfo_t *siginfo, void *ucontext)
 {
-	int	i;
+	int	s;
+	int	error;
 
-	i = 0;
-	while (*message)
-	{
-		while (i < 8)
-		{
-			if (((*message >> i) & 1))
-				ft_kill2(pid, SIGUSR1);
-			ft_kill2(pid, SIGUSR2);
-			i++;
-		}
-		i = 0;
-		message++;
-	}
-	while (i < 8)
-	{
-		if (((*message >> i) & 1))
-			ft_kill2(pid, SIGUSR1);
-		ft_kill2(pid, SIGUSR2);
-		i++;
-	}
-	i = 0;
-}
-
-static void	ft_done(int signum, siginfo_t *siginfo, void *code)
-{
-	(void)signum;
+	(void)sig;
+	(void)ucontext;
 	(void)siginfo;
-	(void)code;
-	ft_printf("Confirm signal received\n");
+	s = get_next_signal();
+	error = kill(g_message.pid, s);
+	if (error == -1)
+	{
+		write(2, "Error: invalid pid\n", 19);
+		exit(1);
+	}
+}
+
+void	stop(int sig)
+{
+	(void)sig;
+	write(1, "Server confirm received \n", 25);
 	exit(0);
 }
 
 int	main(int argc, char **argv)
 {
-	int					pid;
-	char				*message;
-	struct sigaction	usr2;
+	struct sigaction	act;
 
-	usr2.sa_sigaction = ft_done;
-	usr2.sa_flags = SA_SIGINFO;
-	sigemptyset(&usr2.sa_mask);
-	sigaction(SIGUSR2, &usr2, NULL);
-	if (argc < 3)
+	if (argc != 3)
 	{
-		ft_printf("usage: ./client pid message\n");
+		write(2, "usage: ./client pid \"string\"\n", 29);
 		return (1);
 	}
-	pid = ft_atoi(argv[1]);
-	message = argv[2];
-	send_message(pid, message);
-	sleep(1);
-	ft_printf("Timout response from server\n");
-	return (1);
+	g_message.pid = ft_atoi(argv[1]);
+	g_message.str = argv[2];
+	act.sa_flags = SA_SIGINFO;
+	sigemptyset(&act.sa_mask);
+	act.sa_sigaction = send;
+	sigaction(SIGUSR1, &act, NULL);
+	signal(SIGUSR2, stop);
+	kill(getpid(), SIGUSR1);
+	while (1)
+	{
+	}
 }

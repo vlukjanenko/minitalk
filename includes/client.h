@@ -1,19 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils.c                                            :+:      :+:    :+:   */
+/*   client.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: majosue <majosue@student.21-school.ru>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/11/14 19:28:43 by majosue           #+#    #+#             */
-/*   Updated: 2021/11/14 19:29:36 by majosue          ###   ########.fr       */
+/*   Created: 2021/11/09 17:29:38 by majosue           #+#    #+#             */
+/*   Updated: 2021/11/18 14:34:46 by majosue          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "server.h"
+#ifndef CLIENT_H
+# define CLIENT_H
+# include "libft.h"
+# include <signal.h>
 
-void	ft_kill(int pid, int sig)
+#define ZERO		SIGUSR1
+
+struct s_message
 {
-	kill(pid, sig);
-	usleep(10);
-}
+	int			pid;
+	const char	*str;
+};
+
+
+#endif
