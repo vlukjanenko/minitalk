@@ -6,13 +6,15 @@
 #    By: majosue <majosue@student.21-school.ru>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/11/13 10:14:46 by majosue           #+#    #+#              #
-#    Updated: 2021/11/18 17:39:08 by majosue          ###   ########.fr        #
+#    Updated: 2021/11/18 15:42:37 by majosue          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME = server
 NAME2 = client
 COMPILERC = gcc
+LIBFT = libft/libft.a
+LIBFTPRINTF = libftprintf/libftprintf.a
 FLAGS = -Wall -Wextra -Werror
 HEADERS = ./includes/server.h ./libft/includes/libft.h ./libftprintf/includes/ft_printf.h
 HEADERS2 = ./includes/client.h ./libft/includes/libft.h
@@ -29,7 +31,7 @@ OBJECTS2 = $(SOURCES2:.c=.o)
 OBJECTS2 := $(addprefix $(OBJECTS_DIRECTORY), $(OBJECTS2))
 SOURCES2 := $(addprefix $(SOURCES_DIRECTORY), $(SOURCES2))
 
-.PHONY: libft libftprintf clean fclean re
+.PHONY: clean fclean re libft libftprintf
 
 all: $(NAME) $(NAME2)
 
@@ -39,14 +41,14 @@ libft:
 libftprintf:
 	@$(MAKE) -C libftprintf
 
-$(NAME):: libft libftprintf
+$(LIBFT): libft
 
-$(NAME):: $(OBJECTS_DIRECTORY) $(OBJECTS)
+$(LIBFTPRINTF): libftprintf
+
+$(NAME): $(OBJECTS_DIRECTORY) $(OBJECTS) $(LIBFT) $(LIBFTPRINTF)
 	$(COMPILERC) -o $(NAME) $(OBJECTS) $(INCLUDES) -L libft/ -lft -L libftprintf/ -lftprintf
 
-$(NAME2):: libft
-
-$(NAME2):: $(OBJECTS_DIRECTORY) $(OBJECTS2)
+$(NAME2): $(OBJECTS_DIRECTORY) $(OBJECTS2) $(LIBFT)
 	$(COMPILERC) -o $(NAME2) $(OBJECTS2) $(INCLUDES) -L libft/ -lft
 
 $(OBJECTS): $(OBJECTS_DIRECTORY)%.o : $(SOURCES_DIRECTORY)%.c $(HEADERS)
